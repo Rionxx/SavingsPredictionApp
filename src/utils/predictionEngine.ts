@@ -170,26 +170,49 @@ export class PredictionEngine {
     // 12ヶ月の季節性パターンを計算
     const monthlyPatterns = new Array(12).fill(0);
     const monthlyCounts = new Array(12).fill(0);
+    const monthlyVariances = new Array(12).fill(0);
+    const monthlySums = new Array(12).fill(0);
+    const monthlySquaredSums = new Array(12).fill(0);
 
+    // 各月のデータを収集
     this.transactions.forEach(transaction => {
       const month = parseInt(transaction.date.substring(5, 7)) - 1; // 0-11
       const amount = transaction.type === 'income' ? transaction.amount : -transaction.amount;
-      monthlyPatterns[month] += amount;
+      monthlySums[month] += amount;
+      monthlySquaredSums[month] += amount * amount;
       monthlyCounts[month]++;
     });
 
-    return monthlyPatterns.map((total, i) => 
-      monthlyCounts[i] > 0 ? total / monthlyCounts[i] : 0
-    );
+    // 各月の平均と標準偏差を計算
+    for (let i = 0; i < 12; i++) {
+      if (monthlyCounts[i] > 0) {
+        const mean = monthlySums[i] / monthlyCounts[i];
+        const variance = (monthlySquaredSums[i] / monthlyCounts[i]) - (mean * mean);
+        monthlyPatterns[i] = mean;
+        monthlyVariances[i] = Math.sqrt(variance);
+      }
+    }
+
+    // 季節性の強さを計算
+    const overallMean = monthlyPatterns.reduce((sum, val) => sum + val, 0) / 12;
+    const seasonalityStrength = monthlyPatterns.map((pattern, i) => {
+      if (monthlyCounts[i] === 0) return 0;
+      return (pattern - overallMean) / monthlyVariances[i];
+    });
+
+    return seasonalityStrength;
   }
 
   private applySeasonality(months: number, seasonality: number[]): number {
     let adjustment = 0;
     const currentMonth = new Date().getMonth();
+    const monthlyData = this.getMonthlyAverages();
     
     for (let i = 0; i < months; i++) {
       const month = (currentMonth + i) % 12;
-      adjustment += seasonality[month] * 0.1; // 季節性の影響を10%に制限
+      // 季節性の影響を、データの変動に応じて調整
+      const seasonalityImpact = seasonality[month] * monthlyData.avgSavings * 0.15;
+      adjustment += seasonalityImpact;
     }
     
     return adjustment;
@@ -199,21 +222,43 @@ export class PredictionEngine {
     const dataPoints = this.transactions.length;
     const timeSpan = this.getDataTimeSpan();
     
-    let baseConfidence = 0.9;
+    // データの量に基づく信頼度
+    const dataConfidence = Math.min(dataPoints / 100, 1);
     
-    // データ量による調整
-    if (dataPoints < 50) baseConfidence -= 0.2;
-    else if (dataPoints < 100) baseConfidence -= 0.1;
+    // 期間に基づく信頼度
+    let periodConfidence = 1;
+    if (period === 'short') {
+      periodConfidence = Math.max(0, 1 - (months / 12));
+    } else if (period === 'medium') {
+      periodConfidence = Math.max(0, 1 - (months / 60));
+    } else {
+      periodConfidence = Math.max(0, 1 - (months / 120));
+    }
     
-    // 予測期間による調整
-    if (period === 'medium') baseConfidence -= 0.1;
-    else if (period === 'long') baseConfidence -= 0.2;
+    // データの一貫性に基づく信頼度
+    const consistencyConfidence = this.calculateDataConsistency();
     
-    // 時系列データの長さによる調整
-    if (timeSpan < 6) baseConfidence -= 0.2;
-    else if (timeSpan < 12) baseConfidence -= 0.1;
+    // 総合的な信頼度を計算
+    return (dataConfidence * 0.3 + periodConfidence * 0.4 + consistencyConfidence * 0.3);
+  }
+
+  private calculateDataConsistency(): number {
+    const monthlyData = this.getMonthlyTrend();
+    if (monthlyData.length < 2) return 0;
+
+    // 標準偏差を計算
+    const mean = monthlyData.reduce((sum, data) => sum + data.savings, 0) / monthlyData.length;
+    const variance = monthlyData.reduce((sum, data) => {
+      const diff = data.savings - mean;
+      return sum + (diff * diff);
+    }, 0) / monthlyData.length;
+    const stdDev = Math.sqrt(variance);
+
+    // 変動係数（CV）を計算
+    const cv = stdDev / Math.abs(mean);
     
-    return Math.max(0.3, Math.min(0.95, baseConfidence));
+    // 変動係数が小さいほど信頼度が高い
+    return Math.max(0, 1 - cv);
   }
 
   private getDataTimeSpan(): number {

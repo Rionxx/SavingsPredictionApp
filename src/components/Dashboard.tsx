@@ -1,27 +1,89 @@
-import React from 'react';
-import { Bell, ChevronRight, TrendingUp, Target, BarChart3, Plus, AlertTriangle, CheckCircle, Clock, Users } from 'lucide-react';
+import React, { useState } from 'react';
+import { Bell, ChevronRight, TrendingUp, Target, BarChart3, Plus, AlertTriangle, CheckCircle, Clock, Users, Edit2, Check, X } from 'lucide-react';
 import { mockTransactions, mockGoals, mockBudgetCategories } from '../data/mockData';
 import { PredictionEngine } from '../utils/predictionEngine';
 import { AdviceEngine } from '../utils/adviceEngine';
 
 const Dashboard = () => {
-  const predictionEngine = new PredictionEngine(mockTransactions);
-  const adviceEngine = new AdviceEngine(mockTransactions, mockBudgetCategories, mockGoals);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedSavings, setEditedSavings] = useState('');
+  const [localTransactions, setLocalTransactions] = useState(mockTransactions);
+
+  const predictionEngine = new PredictionEngine(localTransactions);
+  const adviceEngine = new AdviceEngine(localTransactions, mockBudgetCategories, mockGoals);
   
   const shortTermPrediction = predictionEngine.generateShortTermPrediction(12);
   const personalizedAdvice = adviceEngine.generatePersonalizedAdvice();
 
   // 現在の貯金額を計算
-  const totalIncome = mockTransactions
+  const totalIncome = localTransactions
     .filter(t => t.type === 'income')
     .reduce((sum, t) => sum + t.amount, 0);
   
-  const totalExpenses = mockTransactions
+  const totalExpenses = localTransactions
     .filter(t => t.type === 'expense')
     .reduce((sum, t) => sum + t.amount, 0);
   
   const currentSavings = totalIncome - totalExpenses;
   const savingsRate = totalIncome > 0 ? (currentSavings / totalIncome) * 100 : 0;
+
+  const handleEditClick = () => {
+    setIsEditing(true);
+    setEditedSavings(currentSavings.toString());
+  };
+
+  const handleSave = () => {
+    const newAmount = parseInt(editedSavings.replace(/,/g, ''));
+    if (!isNaN(newAmount)) {
+      // 新しい取引を追加して貯金額を調整
+      const adjustment = newAmount - currentSavings;
+      const newTransaction = {
+        id: Date.now().toString(),
+        date: new Date().toISOString(),
+        type: adjustment >= 0 ? 'income' : 'expense',
+        amount: Math.abs(adjustment),
+        category: '調整',
+        description: '貯金額の手動調整'
+      };
+      setLocalTransactions([...localTransactions, newTransaction]);
+    }
+    setIsEditing(false);
+  };
+
+  const handleCancel = () => {
+    setIsEditing(false);
+    setEditedSavings('');
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/[^0-9]/g, '');
+    setEditedSavings(parseInt(value).toLocaleString());
+  };
+
+  // 前月比の計算
+  const currentMonth = new Date().getMonth();
+  const currentYear = new Date().getFullYear();
+  const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+  const lastYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+
+  const lastMonthTransactions = localTransactions.filter(t => {
+    const date = new Date(t.date);
+    return date.getMonth() === lastMonth && date.getFullYear() === lastYear;
+  });
+
+  const lastMonthIncome = lastMonthTransactions
+    .filter(t => t.type === 'income')
+    .reduce((sum, t) => sum + t.amount, 0);
+  
+  const lastMonthExpenses = lastMonthTransactions
+    .filter(t => t.type === 'expense')
+    .reduce((sum, t) => sum + t.amount, 0);
+  
+  const lastMonthSavings = lastMonthIncome - lastMonthExpenses;
+  const monthOverMonthChange = currentSavings - lastMonthSavings;
+  const monthOverMonthPercentage = lastMonthSavings !== 0 
+    ? ((monthOverMonthChange / lastMonthSavings) * 100)
+    : 0;
 
   // 今月の予算状況
   const budgetStatus = mockBudgetCategories.map(category => ({
@@ -65,23 +127,62 @@ const Dashboard = () => {
               </div>
               <span className="font-medium">現在の貯金状況</span>
             </div>
-            <button className="text-white text-sm font-medium flex items-center bg-white bg-opacity-20 px-3 py-1 rounded-full">
-              詳細 <ChevronRight size={14} className="ml-1" />
-            </button>
+            <div className="flex items-center space-x-2">
+              {!isEditing ? (
+                <button
+                  onClick={handleEditClick}
+                  className="text-white text-sm font-medium flex items-center bg-white bg-opacity-20 px-3 py-1 rounded-full"
+                >
+                  <Edit2 size={14} className="mr-1" />
+                  編集
+                </button>
+              ) : (
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={handleSave}
+                    className="text-white text-sm font-medium flex items-center bg-green-500 bg-opacity-20 px-3 py-1 rounded-full"
+                  >
+                    <Check size={14} className="mr-1" />
+                    保存
+                  </button>
+                  <button
+                    onClick={handleCancel}
+                    className="text-white text-sm font-medium flex items-center bg-red-500 bg-opacity-20 px-3 py-1 rounded-full"
+                  >
+                    <X size={14} className="mr-1" />
+                    キャンセル
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
           
           <div className="space-y-4">
             <div>
-              <div className="text-3xl font-bold mb-1">
-                {currentSavings.toLocaleString()} <span className="text-lg">円</span>
-              </div>
+              {isEditing ? (
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="text"
+                    value={editedSavings}
+                    onChange={handleInputChange}
+                    className="text-3xl font-bold bg-white bg-opacity-20 rounded-lg px-3 py-2 w-full text-white placeholder-white placeholder-opacity-50"
+                    placeholder="貯金額を入力"
+                  />
+                  <span className="text-lg">円</span>
+                </div>
+              ) : (
+                <div className="text-3xl font-bold mb-1">
+                  {currentSavings.toLocaleString()} <span className="text-lg">円</span>
+                </div>
+              )}
               <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-1">
                   <TrendingUp size={16} />
                   <span className="text-sm">貯金率 {savingsRate.toFixed(1)}%</span>
                 </div>
                 <div className="text-sm opacity-90">
-                  前月比 +{((currentSavings * 0.035)).toLocaleString()}円
+                  前月比 {monthOverMonthChange >= 0 ? '+' : ''}{monthOverMonthChange.toLocaleString()}円
+                  ({monthOverMonthPercentage >= 0 ? '+' : ''}{monthOverMonthPercentage.toFixed(1)}%)
                 </div>
               </div>
             </div>
@@ -206,9 +307,10 @@ const Dashboard = () => {
                   <span className="text-red-700 font-medium text-sm">予算超過アラート</span>
                 </div>
                 <div className="space-y-1">
-                  {overBudgetCategories.slice(0, 2).map(category => (
+                  {overBudgetCategories.map(category => (
                     <div key={category.id} className="text-sm text-red-600">
                       {category.name}: {(category.spentAmount - category.budgetAmount).toLocaleString()}円超過
+                      ({((category.spentAmount / category.budgetAmount - 1) * 100).toFixed(1)}%)
                     </div>
                   ))}
                 </div>

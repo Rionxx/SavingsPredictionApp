@@ -1,5 +1,6 @@
 import { Transaction, BudgetCategory, Goal } from '../types';
 
+// アドバイスエンジンクラスを定義
 export class AdviceEngine {
   private transactions: Transaction[];
   private budgetCategories: BudgetCategory[];
@@ -11,6 +12,7 @@ export class AdviceEngine {
     this.goals = goals;
   }
 
+  // 個人に合わせたアドバイスを生成するメソッド
   generatePersonalizedAdvice(): string[] {
     const advice: string[] = [];
     
@@ -29,6 +31,7 @@ export class AdviceEngine {
     return advice.slice(0, 5); // 上位5つのアドバイスを返す
   }
 
+  // 支出パターン分析
   private analyzeSpendingPatterns(): string[] {
     const advice: string[] = [];
     const monthlyExpenses = this.getMonthlyExpensesByCategory();
@@ -36,7 +39,7 @@ export class AdviceEngine {
     // 最も支出の多いカテゴリーを特定
     const topCategory = Object.entries(monthlyExpenses)
       .sort(([,a], [,b]) => b - a)[0];
-    
+    // 最も支出の多いカテゴリーが存在する場合
     if (topCategory && topCategory[1] > 0) {
       const [category, amount] = topCategory;
       const reduction = Math.floor(amount * 0.1);
@@ -52,6 +55,7 @@ export class AdviceEngine {
     return advice;
   }
 
+  // 目標達成に向けたアドバイス
   private analyzeGoalProgress(): string[] {
     const advice: string[] = [];
     
@@ -59,7 +63,7 @@ export class AdviceEngine {
       const progressRate = goal.currentAmount / goal.targetAmount;
       const monthsRemaining = this.getMonthsUntilTarget(goal.targetDate);
       const monthlyRequired = (goal.targetAmount - goal.currentAmount) / monthsRemaining;
-      
+
       if (progressRate < 0.5 && monthsRemaining < 12) {
         advice.push(`${goal.name}の達成には月々${Math.ceil(monthlyRequired).toLocaleString()}円の貯金が必要です`);
       } else if (progressRate > 0.8) {
@@ -70,6 +74,7 @@ export class AdviceEngine {
     return advice;
   }
 
+  // 予算管理アドバイス
   private analyzeBudgetPerformance(): string[] {
     const advice: string[] = [];
     
@@ -88,6 +93,7 @@ export class AdviceEngine {
     return advice;
   }
 
+  // 貯金効率化アドバイス
   private generateSavingsOptimization(): string[] {
     const advice: string[] = [];
     const currentSavingsRate = this.calculateSavingsRate();
@@ -107,6 +113,7 @@ export class AdviceEngine {
     return advice;
   }
 
+  // 月ごとの支出をカテゴリー別に取得
   private getMonthlyExpensesByCategory(): Record<string, number> {
     const expenses: Record<string, number> = {};
     const monthsCount = this.getUniqueMonthsCount();
