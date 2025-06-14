@@ -3,10 +3,12 @@ import { ChevronLeft, Users, TrendingUp, TrendingDown, Award, Target } from 'luc
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
 import { mockComparisonData } from '../data/mockData';
 
+// 比較ビューコンポーネントのProps
 interface ComparisonViewProps {
   onClose: () => void;
 }
 
+// 比較ビューコンポーネント
 const ComparisonView = ({ onClose }: ComparisonViewProps) => {
   const [selectedAge, setSelectedAge] = useState('20-30');
   const [selectedRegion, setSelectedRegion] = useState('全国');

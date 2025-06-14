@@ -1,16 +1,19 @@
 import React, { useState } from 'react';
 import { ChevronLeft, DollarSign, Calendar, Edit3, ShoppingBag, Home, TrendingUp, Gift, ShoppingCart, MoreHorizontal } from 'lucide-react';
 
+// 収入記録コンポーネントのProps
 interface AddRecordProps {
   onClose: () => void;
 }
 
 const AddRecord = ({ onClose }: AddRecordProps) => {
+  // 収入金額、日付、メモ、選択したカテゴリーの状態を管理
   const [amount, setAmount] = useState('5000');
   const [date, setDate] = useState('2023-11-25');
   const [memo, setMemo] = useState('食料品の購入');
   const [selectedCategory, setSelectedCategory] = useState('食費');
 
+  // カテゴリーのリスト
   const categories = [
     { id: 'salary', name: '給料', icon: DollarSign, color: 'bg-blue-500' },
     { id: 'side', name: '副業', icon: Home, color: 'bg-purple-500' },
@@ -20,6 +23,7 @@ const AddRecord = ({ onClose }: AddRecordProps) => {
     { id: 'other', name: 'その他', icon: MoreHorizontal, color: 'bg-gray-500' }
   ];
 
+  // 収入記録コンポーネントのレンダリング
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}

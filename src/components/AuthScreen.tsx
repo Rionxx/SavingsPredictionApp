@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import { Bell, PiggyBank } from 'lucide-react';
 
+// 認証画面コンポーネントのProps
 interface AuthScreenProps {
   onAuth: () => void;
 }
 
+// 認証画面コンポーネント
 const AuthScreen = ({ onAuth }: AuthScreenProps) => {
+  // ログイン状態とメールアドレス、パスワードの状態を管理
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

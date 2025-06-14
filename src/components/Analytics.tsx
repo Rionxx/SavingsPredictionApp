@@ -4,6 +4,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { mockTransactions, mockGoals } from '../data/mockData';
 import { PredictionEngine } from '../utils/predictionEngine';
 
+// 分析ページコンポーネント
 const Analytics = () => {
   const [selectedPeriod, setSelectedPeriod] = useState<'short' | 'medium' | 'long'>('short');
   const [selectedScenario, setSelectedScenario] = useState<'expense_reduction' | 'income_increase'>('expense_reduction');
@@ -11,6 +12,7 @@ const Analytics = () => {
 
   const predictionEngine = new PredictionEngine(mockTransactions);
   
+  // 予測結果のオブジェクト
   const predictions = {
     short: predictionEngine.generateShortTermPrediction(12),
     medium: predictionEngine.generateMediumTermPrediction(36),
@@ -46,6 +48,7 @@ const Analytics = () => {
     { month: '6月', income: 390000, expenses: 203000, savings: 187000 }
   ];
 
+  // 分析ページのレンダリング
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
