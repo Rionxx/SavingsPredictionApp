@@ -5,7 +5,7 @@ import { PredictionEngine } from '../utils/predictionEngine';
 import { AdviceEngine } from '../utils/adviceEngine';
 
 // ダッシュボードコンポーネント
-const Dashboard = () => {
+const Dashboard: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedSavings, setEditedSavings] = useState('');
   const [localTransactions, setLocalTransactions] = useState(mockTransactions);
