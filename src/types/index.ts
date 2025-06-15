@@ -65,3 +65,16 @@ export interface ComparisonData {
   averageAmount: number;
   percentile: number;
 }
+
+export interface User {
+  id: string;
+  username: string;
+  password: string; // 実際のアプリケーションではハッシュ化されたパスワードを保存
+  email: string;
+  createdAt: string;
+}
+
+export interface AuthError {
+  code: 'INVALID_CREDENTIALS' | 'USER_NOT_FOUND' | 'INVALID_INPUT';
+  message: string;
+}

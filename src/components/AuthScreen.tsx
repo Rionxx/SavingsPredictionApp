@@ -1,18 +1,81 @@
-import React, { useState } from 'react';
-import { Bell, PiggyBank } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Bell, PiggyBank, Lock, User, AlertCircle, Mail } from 'lucide-react';
+import { validateCredentials, registerNewUser } from '../utils/authUtils';
+import { AuthError } from '../types';
 
 interface AuthScreenProps {
   onAuth: () => void;
 }
 
-const AuthScreen = ({ onAuth }: AuthScreenProps) => {
+const AuthScreen: React.FC<AuthScreenProps> = ({ onAuth }) => {
   const [isLogin, setIsLogin] = useState(true);
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('');
+  const [showWarning, setShowWarning] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(30 * 60); // 30分を秒で表示
+  const [error, setError] = useState<AuthError | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (!showWarning) return;
+
+    const timer = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev <= 0) {
+          clearInterval(timer);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [showWarning]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onAuth();
+    setError(null);
+    setIsLoading(true);
+
+    try {
+      if (isLogin) {
+        const { user, error: authError } = validateCredentials(username, password);
+        
+        if (authError) {
+          setError(authError);
+          return;
+        }
+
+        if (user) {
+          onAuth();
+        }
+      } else {
+        const { user, error: registerError } = registerNewUser(username, password, email);
+        
+        if (registerError) {
+          setError(registerError);
+          return;
+        }
+
+        if (user) {
+          onAuth();
+        }
+      }
+    } catch (err) {
+      setError({
+        code: 'INVALID_CREDENTIALS',
+        message: '認証中にエラーが発生しました。'
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const formatTime = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
   return (
@@ -41,6 +104,37 @@ const AuthScreen = ({ onAuth }: AuthScreenProps) => {
             <p className="text-gray-600">あなたの貯金目標を達成しよう</p>
           </div>
 
+          {showWarning && (
+            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <AlertCircle className="h-5 w-5 text-yellow-400" />
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm text-yellow-700">
+                    セキュリティのため、{formatTime(timeLeft)}後に自動的にログアウトされます。
+                    操作を続ける場合は、何かアクションを起こしてください。
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {error && (
+            <div className="bg-red-50 border-l-4 border-red-400 p-4">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <AlertCircle className="h-5 w-5 text-red-400" />
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm text-red-700">
+                    {error.message}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Auth Form */}
           <div className="bg-white rounded-2xl p-8 shadow-sm">
             <h3 className="text-xl font-semibold text-gray-900 text-center mb-6">
@@ -48,42 +142,106 @@ const AuthScreen = ({ onAuth }: AuthScreenProps) => {
             </h3>
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                  placeholder="ユーザー名/メールアドレス"
-                  required
-                />
+              <div className="rounded-md shadow-sm -space-y-px">
+                <div>
+                  <label htmlFor="username" className="sr-only">
+                    ユーザー名
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <User className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <input
+                      id="username"
+                      name="username"
+                      type="text"
+                      required
+                      className="appearance-none rounded-none relative block w-full px-3 py-2 pl-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 focus:z-10 sm:text-sm"
+                      placeholder="ユーザー名"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      disabled={isLoading}
+                    />
+                  </div>
+                </div>
+
+                {!isLogin && (
+                  <div>
+                    <label htmlFor="email" className="sr-only">
+                      メールアドレス
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Mail className="h-5 w-5 text-gray-400" />
+                      </div>
+                      <input
+                        id="email"
+                        name="email"
+                        type="email"
+                        required
+                        className="appearance-none rounded-none relative block w-full px-3 py-2 pl-10 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-orange-500 focus:border-orange-500 focus:z-10 sm:text-sm"
+                        placeholder="メールアドレス"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        disabled={isLoading}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <div>
+                  <label htmlFor="password" className="sr-only">
+                    パスワード
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Lock className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <input
+                      id="password"
+                      name="password"
+                      type="password"
+                      required
+                      className="appearance-none rounded-none relative block w-full px-3 py-2 pl-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 focus:z-10 sm:text-sm"
+                      placeholder="パスワード"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      disabled={isLoading}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsLogin(!isLogin);
+                    setError(null);
+                    setUsername('');
+                    setPassword('');
+                    setEmail('');
+                  }}
+                  className="text-sm text-orange-600 hover:text-orange-500"
+                >
+                  {isLogin ? '新規登録はこちら' : 'ログインはこちら'}
+                </button>
               </div>
 
               <div>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                  placeholder="パスワード"
-                  required
-                />
+                <button
+                  type="submit"
+                  className={`group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white ${
+                    isLoading
+                      ? 'bg-orange-400 cursor-not-allowed'
+                      : 'bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500'
+                  }`}
+                  disabled={isLoading}
+                >
+                  {isLoading ? (isLogin ? 'ログイン中...' : '登録中...') : (isLogin ? 'ログイン' : '新規登録')}
+                </button>
               </div>
-
-              <button
-                type="submit"
-                className="w-full bg-orange-500 text-white py-3 rounded-xl font-semibold hover:bg-orange-600 transition-colors"
-              >
-                {isLogin ? 'ログイン' : '新規登録'}
-              </button>
             </form>
-
-            <button
-              onClick={() => setIsLogin(!isLogin)}
-              className="w-full mt-4 py-3 text-gray-600 font-medium hover:text-gray-800 transition-colors"
-            >
-              {isLogin ? '新規登録' : 'ログインに戻る'}
-            </button>
           </div>
         </div>
       </div>
