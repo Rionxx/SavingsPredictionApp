@@ -3,8 +3,9 @@ import { TrendingUp, Calendar, Target, BarChart3, ChevronLeft, Zap, AlertCircle,
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from 'recharts';
 import { mockTransactions, mockGoals } from '../data/mockData';
 import { PredictionEngine } from '../utils/predictionEngine';
+import { Dashboard } from '../components/Dashboard';
 
-const Analytics = () => {
+const Analytics: React.FC = () => {
   const [selectedPeriod, setSelectedPeriod] = useState<'short' | 'medium' | 'long'>('short');
   const [selectedScenario, setSelectedScenario] = useState<'expense_reduction' | 'income_increase'>('expense_reduction');
   const [scenarioPercentage, setScenarioPercentage] = useState(10);
@@ -19,10 +20,12 @@ const Analytics = () => {
 
   const currentPrediction = predictions[selectedPeriod];
   const scenarioAnalysis = predictionEngine.generateScenario(selectedScenario, scenarioPercentage, 12);
+  const currentMonth = new Date().getMonth() + 1;
 
   // チャート用データ
   const predictionChartData = [
-    { month: '現在', amount: 1850000 },
+    // { month: '現在', amount: Dashboard.currentSavings},
+    { month: '現在', amount: Dashboard.currentSavings},
     { month: '3ヶ月後', amount: 2100000 },
     { month: '6ヶ月後', amount: 2350000 },
     { month: '9ヶ月後', amount: 2600000 },
@@ -38,12 +41,12 @@ const Analytics = () => {
   ];
 
   const monthlyTrendData = [
-    { month: '1月', income: 400000, expenses: 195000, savings: 205000 },
-    { month: '2月', income: 350000, expenses: 182000, savings: 168000 },
-    { month: '3月', income: 380000, expenses: 201000, savings: 179000 },
-    { month: '4月', income: 420000, expenses: 188000, savings: 232000 },
-    { month: '5月', income: 350000, expenses: 195000, savings: 155000 },
-    { month: '6月', income: 390000, expenses: 203000, savings: 187000 }
+    { month: `${currentMonth}月`, income: 400000, expenses: 195000, savings: 205000 },
+    { month: `${currentMonth + 1}月`, income: 350000, expenses: 182000, savings: 168000 },
+    { month: `${currentMonth + 2}月`, income: 380000, expenses: 201000, savings: 179000 },
+    { month: `${currentMonth + 3}月`, income: 420000, expenses: 188000, savings: 232000 },
+    { month: `${currentMonth + 4}月`, income: 350000, expenses: 195000, savings: 155000 },
+    { month: `${currentMonth + 5}月`, income: 390000, expenses: 203000, savings: 187000 }
   ];
 
   return (
@@ -216,7 +219,7 @@ const Analytics = () => {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" />
                 <YAxis tickFormatter={(value) => `${(value / 10000).toFixed(0)}万`} />
-                <Tooltip formatter={(value) => [`${Number(value).toLocaleString()}円`]} />
+                <Tooltip formatter={(value, name) => [`${Number(value).toLocaleString()}円`, name]} />
                 <Bar dataKey="income" fill="#4CAF50" name="収入" />
                 <Bar dataKey="expenses" fill="#FF5722" name="支出" />
                 <Bar dataKey="savings" fill="#2196F3" name="貯金" />
