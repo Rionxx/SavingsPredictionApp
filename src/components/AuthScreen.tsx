@@ -3,11 +3,15 @@ import { Bell, PiggyBank, Lock, User, AlertCircle, Mail } from 'lucide-react';
 import { validateCredentials, registerNewUser } from '../utils/authUtils';
 import { AuthError } from '../types';
 
+// 認証画面コンポーネントのProps
 interface AuthScreenProps {
   onAuth: () => void;
 }
 
 const AuthScreen: React.FC<AuthScreenProps> = ({ onAuth }) => {
+// 認証画面コンポーネント
+const AuthScreen = ({ onAuth }: AuthScreenProps) => {
+  // ログイン状態とメールアドレス、パスワードの状態を管理
   const [isLogin, setIsLogin] = useState(true);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');

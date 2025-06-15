@@ -4,10 +4,12 @@ import { PieChart as RechartsPieChart, Pie, Cell, ResponsiveContainer, Tooltip }
 import { mockBudgetCategories } from '../data/mockData';
 import { BudgetCategory } from '../types';
 
+// 予算管理コンポーネントのProps
 interface BudgetManagerProps {
   onClose: () => void;
 }
 
+// 予算管理コンポーネント
 const BudgetManager = ({ onClose }: BudgetManagerProps) => {
   const [categories, setCategories] = useState<BudgetCategory[]>(mockBudgetCategories);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -62,6 +64,7 @@ const BudgetManager = ({ onClose }: BudgetManagerProps) => {
     resetForm();
   };
 
+  // フォームのリセット
   const resetForm = () => {
     setFormData({
       name: '',
@@ -73,6 +76,7 @@ const BudgetManager = ({ onClose }: BudgetManagerProps) => {
     setEditingCategory(null);
   };
 
+  // カテゴリーの編集
   const handleEdit = (category: BudgetCategory) => {
     setFormData({
       name: category.name,
@@ -84,6 +88,7 @@ const BudgetManager = ({ onClose }: BudgetManagerProps) => {
     setShowAddForm(true);
   };
 
+  // 使用率のステータスを取得
   const getUtilizationStatus = (spent: number, budget: number) => {
     const rate = (spent / budget) * 100;
     if (rate > 100) return { status: 'over', color: 'text-red-600 bg-red-50', icon: AlertTriangle };
@@ -91,12 +96,14 @@ const BudgetManager = ({ onClose }: BudgetManagerProps) => {
     return { status: 'good', color: 'text-green-600 bg-green-50', icon: CheckCircle };
   };
 
+  // 支出分布チャートのデータ
   const chartData = categories.map(cat => ({
     name: cat.name,
     value: cat.spentAmount,
     color: cat.color
   }));
 
+  // 追加フォームの表示
   if (showAddForm) {
     return (
       <div className="min-h-screen bg-gray-50">
