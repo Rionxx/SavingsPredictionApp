@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Bell, Mail, Megaphone, Target, Archive, RotateCcw, Trash2, ChevronRight } from 'lucide-react';
 
+// 設定ページコンポーネント
 const SettingsPage = () => {
   const [pushNotifications, setPushNotifications] = useState(true);
   const [emailNotifications, setEmailNotifications] = useState(false);

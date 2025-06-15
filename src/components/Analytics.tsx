@@ -5,6 +5,7 @@ import { mockTransactions, mockGoals } from '../data/mockData';
 import { PredictionEngine } from '../utils/predictionEngine';
 import { Dashboard } from '../components/Dashboard';
 
+// 分析ページコンポーネント
 const Analytics: React.FC = () => {
   const [selectedPeriod, setSelectedPeriod] = useState<'short' | 'medium' | 'long'>('short');
   const [selectedScenario, setSelectedScenario] = useState<'expense_reduction' | 'income_increase'>('expense_reduction');
@@ -12,6 +13,7 @@ const Analytics: React.FC = () => {
 
   const predictionEngine = new PredictionEngine(mockTransactions);
   
+  // 予測結果のオブジェクト
   const predictions = {
     short: predictionEngine.generateShortTermPrediction(12),
     medium: predictionEngine.generateMediumTermPrediction(36),
@@ -49,6 +51,7 @@ const Analytics: React.FC = () => {
     { month: `${currentMonth + 5}月`, income: 390000, expenses: 203000, savings: 187000 }
   ];
 
+  // 分析ページのレンダリング
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
