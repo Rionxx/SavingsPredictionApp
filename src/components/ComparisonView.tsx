@@ -49,10 +49,10 @@ const ComparisonView = ({ onClose }: ComparisonViewProps) => {
   };
 
   const getPercentileLabel = (percentile: number) => {
-    if (percentile >= 90) return '優秀';
-    if (percentile >= 70) return '良好';
-    if (percentile >= 50) return '平均的';
-    if (percentile >= 30) return '改善の余地あり';
+    if (percentile <= 30) return '優秀';
+    if (percentile <= 50) return '良好';
+    if (percentile <= 70) return '平均的';
+    if (percentile <= 90) return '改善の余地あり';
     return '要改善';
   };
 
@@ -175,9 +175,9 @@ const ComparisonView = ({ onClose }: ComparisonViewProps) => {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="category" />
                 <YAxis tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`} />
-                <Tooltip formatter={(value) => [`${Number(value).toLocaleString()}円`]} />
-                <Bar dataKey="あなた" fill="#FF5722" />
-                <Bar dataKey="平均" fill="#2196F3" />
+                <Tooltip formatter={(value, name) => [`${Number(value).toLocaleString()}円`, name]} />
+                <Bar dataKey="あなた" fill="#FF5722" name="あなたの支出"/>
+                <Bar dataKey="平均" fill="#2196F3" name="同世代平均"/>
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -211,12 +211,12 @@ const ComparisonView = ({ onClose }: ComparisonViewProps) => {
                   <div className="text-right">
                     <div className="flex items-center space-x-2">
                       {isAboveAverage ? (
-                        <TrendingUp className="text-green-500" size={16} />
+                        <TrendingUp className="text-red-500" size={16} />
                       ) : (
-                        <TrendingDown className="text-red-500" size={16} />
+                        <TrendingDown className="text-green-500" size={16} />
                       )}
                       <span className={`font-semibold ${
-                        isAboveAverage ? 'text-green-600' : 'text-red-600'
+                        isAboveAverage ? 'text-red-600' : 'text-green-600'
                       }`}>
                         {isAboveAverage ? '+' : ''}{difference.toLocaleString()}円
                       </span>
