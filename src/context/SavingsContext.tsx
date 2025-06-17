@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { mockTransactions } from '../data/mockData';
 
 interface SavingsContextType {
   currentSavings: number;
@@ -7,8 +8,19 @@ interface SavingsContextType {
 
 const SavingsContext = createContext<SavingsContextType | undefined>(undefined);
 
+// Calculate initial savings from mockTransactions
+const calculateInitialSavings = () => {
+  return mockTransactions.reduce((total, transaction) => {
+    if (transaction.type === 'income') {
+      return total + transaction.amount;
+    } else {
+      return total - transaction.amount;
+    }
+  }, 0);
+};
+
 export const SavingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [currentSavings, setCurrentSavings] = useState(0);
+  const [currentSavings, setCurrentSavings] = useState(calculateInitialSavings());
 
   return (
     <SavingsContext.Provider value={{ currentSavings, setCurrentSavings }}>
