@@ -88,19 +88,7 @@ function App() {
   };
 
   return (
-<<<<<<< HEAD
-    <SavingsProvider>
-      <div className="min-h-screen bg-gray-50">
-        {/* Notification Center */}
-        {showNotifications && (
-          <NotificationCenter
-            notifications={notifications}
-            onClose={() => setShowNotifications(false)}
-            onMarkAsRead={markAsRead}
-            onMarkAllAsRead={markAllAsRead}
-          />
-        )}
-=======
+  <SavingsProvider>
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white px-6 py-4 border-b border-gray-100">
@@ -141,7 +129,6 @@ function App() {
           onMarkAllAsRead={markAllAsRead}
         />
       )}
->>>>>>> 8832e5dda32b985e024e11d8bf40c5c35bc48252
 
         {/* Content */}
         <div className="pb-20">
