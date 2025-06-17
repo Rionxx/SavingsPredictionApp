@@ -2,6 +2,7 @@ import React from 'react';
 import { X, Bell, AlertTriangle, CheckCircle, Info, Clock } from 'lucide-react';
 import { Notification } from '../types';
 
+// 通知センターコンポーネントのProps
 interface NotificationCenterProps {
   notifications: Notification[];
   onClose: () => void;
@@ -9,7 +10,9 @@ interface NotificationCenterProps {
   onMarkAllAsRead: () => void;
 }
 
+// 通知センターコンポーネント
 const NotificationCenter = ({ notifications, onClose, onMarkAsRead, onMarkAllAsRead }: NotificationCenterProps) => {
+  // 通知のアイコンを取得
   const getNotificationIcon = (type: Notification['type']) => {
     switch (type) {
       case 'alert':
@@ -23,6 +26,7 @@ const NotificationCenter = ({ notifications, onClose, onMarkAsRead, onMarkAllAsR
     }
   };
 
+  // 優先度に応じた色を取得
   const getPriorityColor = (priority: Notification['priority']) => {
     switch (priority) {
       case 'high':
@@ -34,6 +38,7 @@ const NotificationCenter = ({ notifications, onClose, onMarkAsRead, onMarkAllAsR
     }
   };
 
+  // 日付をフォーマット
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();

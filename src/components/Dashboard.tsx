@@ -5,6 +5,7 @@ import { PredictionEngine } from '../utils/predictionEngine';
 import { AdviceEngine } from '../utils/adviceEngine';
 import { useSavings } from '../context/SavingsContext';
 
+// ダッシュボードコンポーネント
 const Dashboard: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedSavings, setEditedSavings] = useState('');
@@ -29,16 +30,12 @@ const Dashboard: React.FC = () => {
   const currentSavings = totalIncome - totalExpenses;
   const savingsRate = totalIncome > 0 ? (currentSavings / totalIncome) * 100 : 0;
 
-  // 貯金額が変更されたらコンテキストを更新
-  useEffect(() => {
-    setCurrentSavings(currentSavings);
-  }, [currentSavings, setCurrentSavings]);
-
   const handleEditClick = () => {
     setIsEditing(true);
     setEditedSavings(currentSavings.toString());
   };
 
+  // 保存ボタンクリック時の処理
   const handleSave = () => {
     const newAmount = parseInt(editedSavings.replace(/,/g, ''));
     if (!isNaN(newAmount)) {
@@ -52,16 +49,18 @@ const Dashboard: React.FC = () => {
         category: '調整',
         description: '貯金額の手動調整'
       };
-      setLocalTransactions([...localTransactions, newTransaction]);
+      setLocalTransactions([...localTransactions, newTransaction as Transaction]);
     }
     setIsEditing(false);
   };
 
+  // キャンセルボタンクリック時の処理
   const handleCancel = () => {
     setIsEditing(false);
     setEditedSavings('');
   };
 
+  // 入力フィールドの変更時の処理
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/[^0-9]/g, '');
     setEditedSavings(parseInt(value).toLocaleString());
