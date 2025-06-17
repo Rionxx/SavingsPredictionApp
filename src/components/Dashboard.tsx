@@ -4,6 +4,7 @@ import { mockTransactions, mockGoals, mockBudgetCategories } from '../data/mockD
 import { PredictionEngine } from '../utils/predictionEngine';
 import { AdviceEngine } from '../utils/adviceEngine';
 import { useSavings } from '../context/SavingsContext';
+import { Transaction } from '../types';
 
 // ダッシュボードコンポーネント
 const Dashboard: React.FC = () => {
@@ -29,6 +30,11 @@ const Dashboard: React.FC = () => {
   
   const currentSavings = totalIncome - totalExpenses;
   const savingsRate = totalIncome > 0 ? (currentSavings / totalIncome) * 100 : 0;
+
+  // 貯金額が変更されたときにSavingsContextを更新
+  useEffect(() => {
+    setCurrentSavings(currentSavings);
+  }, [currentSavings, setCurrentSavings]);
 
   const handleEditClick = () => {
     setIsEditing(true);
