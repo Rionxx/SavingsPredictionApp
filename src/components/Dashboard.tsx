@@ -1,13 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Bell, ChevronRight, TrendingUp, Target, BarChart3, Plus, AlertTriangle, CheckCircle, Clock, Users, Edit2, Check, X } from 'lucide-react';
 import { mockTransactions, mockGoals, mockBudgetCategories } from '../data/mockData';
 import { PredictionEngine } from '../utils/predictionEngine';
 import { AdviceEngine } from '../utils/adviceEngine';
+import { useSavings } from '../context/SavingsContext';
 
 const Dashboard: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedSavings, setEditedSavings] = useState('');
   const [localTransactions, setLocalTransactions] = useState(mockTransactions);
+  const { setCurrentSavings } = useSavings();
 
   const predictionEngine = new PredictionEngine(localTransactions);
   const adviceEngine = new AdviceEngine(localTransactions, mockBudgetCategories, mockGoals);
@@ -26,6 +28,11 @@ const Dashboard: React.FC = () => {
   
   const currentSavings = totalIncome - totalExpenses;
   const savingsRate = totalIncome > 0 ? (currentSavings / totalIncome) * 100 : 0;
+
+  // 貯金額が変更されたらコンテキストを更新
+  useEffect(() => {
+    setCurrentSavings(currentSavings);
+  }, [currentSavings, setCurrentSavings]);
 
   const handleEditClick = () => {
     setIsEditing(true);

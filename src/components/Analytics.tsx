@@ -3,12 +3,13 @@ import { TrendingUp, Calendar, Target, BarChart3, ChevronLeft, Zap, AlertCircle,
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from 'recharts';
 import { mockTransactions, mockGoals } from '../data/mockData';
 import { PredictionEngine } from '../utils/predictionEngine';
-import { Dashboard } from '../components/Dashboard';
+import { useSavings } from '../context/SavingsContext';
 
 const Analytics: React.FC = () => {
   const [selectedPeriod, setSelectedPeriod] = useState<'short' | 'medium' | 'long'>('short');
   const [selectedScenario, setSelectedScenario] = useState<'expense_reduction' | 'income_increase'>('expense_reduction');
   const [scenarioPercentage, setScenarioPercentage] = useState(10);
+  const { currentSavings } = useSavings();
 
   const predictionEngine = new PredictionEngine(mockTransactions);
   
@@ -24,8 +25,7 @@ const Analytics: React.FC = () => {
 
   // チャート用データ
   const predictionChartData = [
-    // { month: '現在', amount: Dashboard.currentSavings},
-    { month: '現在', amount: Dashboard.currentSavings},
+    { month: '現在', amount: currentSavings },
     { month: '3ヶ月後', amount: 2100000 },
     { month: '6ヶ月後', amount: 2350000 },
     { month: '9ヶ月後', amount: 2600000 },
@@ -41,7 +41,7 @@ const Analytics: React.FC = () => {
   ];
 
   const monthlyTrendData = [
-    { month: `${currentMonth}月`, income: 400000, expenses: 195000, savings: 205000 },
+    { month: `${currentMonth}月`, income: 400000, expenses: 195000, savings: currentSavings },
     { month: `${currentMonth + 1}月`, income: 350000, expenses: 182000, savings: 168000 },
     { month: `${currentMonth + 2}月`, income: 380000, expenses: 201000, savings: 179000 },
     { month: `${currentMonth + 3}月`, income: 420000, expenses: 188000, savings: 232000 },
