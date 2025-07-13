@@ -3,11 +3,13 @@ import { Bell, ChevronRight, TrendingUp, Target, BarChart3, Plus, AlertTriangle,
 import { mockTransactions, mockGoals, mockBudgetCategories } from '../data/mockData';
 import { PredictionEngine } from '../utils/predictionEngine';
 import { AdviceEngine } from '../utils/adviceEngine';
+import { useNotification } from '../context/NotificationContext';
 
 const Dashboard = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedSavings, setEditedSavings] = useState('');
   const [localTransactions, setLocalTransactions] = useState(mockTransactions);
+  const { addNotification } = useNotification();
 
   const predictionEngine = new PredictionEngine(localTransactions);
   const adviceEngine = new AdviceEngine(localTransactions, mockBudgetCategories, mockGoals);
@@ -104,6 +106,16 @@ const Dashboard = () => {
             <p className="text-sm text-gray-600">今日も貯金目標に向けて頑張りましょう！</p>
           </div>
           <div className="flex items-center space-x-3">
+            <button
+              className="bg-blue-500 text-white px-3 py-1 rounded-full text-xs hover:bg-blue-600"
+              onClick={() => addNotification({
+                title: '新しいお知らせ',
+                message: 'これはサンプル通知です。クリックで詳細を確認できます。',
+                type: 'info',
+              })}
+            >
+              通知テスト
+            </button>
             <div className="relative">
               <Bell className="text-gray-400" size={20} />
               <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full flex items-center justify-center">
