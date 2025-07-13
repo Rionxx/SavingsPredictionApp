@@ -9,6 +9,11 @@ import NotificationCenter from './components/NotificationCenter';
 import GoalsManager from './components/GoalsManager';
 import BudgetManager from './components/BudgetManager';
 import ComparisonView from './components/ComparisonView';
+import { NotificationProvider } from './context/NotificationContext';
+import ToastNotifications from './components/ToastNotifications';
+import NotificationDetail from './components/NotificationDetail';
+import { NotificationItem } from './context/NotificationContext';
+import NotificationList from './components/NotificationList';
 import { useNotifications } from './hooks/useNotifications';
 import { SavingsProvider } from './context/SavingsContext';
 
@@ -19,6 +24,8 @@ function App() {
   const [activeTab, setActiveTab] = useState('home');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [selectedNotification, setSelectedNotification] = useState<NotificationItem | null>(null);
+  const [showNotificationList, setShowNotificationList] = useState(false);
   const [lastActivity, setLastActivity] = useState(Date.now());
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
 
@@ -88,6 +95,24 @@ function App() {
   };
 
   return (
+    <NotificationProvider>
+      <div className="min-h-screen bg-gray-50">
+        {/* トースト通知 */}
+        <ToastNotifications onClickNotification={setSelectedNotification} />
+        {/* 通知リスト */}
+        {showNotificationList && (
+          <NotificationList
+            onSelect={setSelectedNotification}
+            onClose={() => setShowNotificationList(false)}
+          />
+        )}
+        {/* 通知詳細 */}
+        {selectedNotification && (
+          <NotificationDetail
+            notification={selectedNotification}
+            onClose={() => setSelectedNotification(null)}
+          />
+        )}
   <SavingsProvider>
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -129,12 +154,10 @@ function App() {
           onMarkAllAsRead={markAllAsRead}
         />
       )}
-
         {/* Content */}
         <div className="pb-20">
           {renderContent()}
         </div>
-
         {/* Bottom Navigation */}
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-2 safe-area-pb">
           <div className="flex justify-around items-center max-w-md mx-auto">
@@ -147,7 +170,6 @@ function App() {
               <Home size={20} />
               <span className="text-xs mt-1">ホーム</span>
             </button>
-            
             <button
               onClick={() => setActiveTab('add')}
               className={`flex flex-col items-center py-2 px-3 rounded-lg transition-colors ${
@@ -157,7 +179,6 @@ function App() {
               <Plus size={20} />
               <span className="text-xs mt-1">記録</span>
             </button>
-
             <button
               onClick={() => setActiveTab('analytics')}
               className={`flex flex-col items-center py-2 px-3 rounded-lg transition-colors ${
@@ -167,7 +188,6 @@ function App() {
               <TrendingUp size={20} />
               <span className="text-xs mt-1">予測</span>
             </button>
-
             <button
               onClick={() => setActiveTab('comparison')}
               className={`flex flex-col items-center py-2 px-3 rounded-lg transition-colors ${
@@ -177,7 +197,6 @@ function App() {
               <Users size={20} />
               <span className="text-xs mt-1">比較</span>
             </button>
-
             <button
               onClick={() => setActiveTab('settings')}
               className={`flex flex-col items-center py-2 px-3 rounded-lg transition-colors ${
@@ -187,6 +206,18 @@ function App() {
               <Settings size={20} />
               <span className="text-xs mt-1">設定</span>
             </button>
+            {/* 通知アイコン */}
+            <button
+              onClick={() => setShowNotificationList((prev) => !prev)}
+              className="relative flex flex-col items-center py-2 px-3 rounded-lg transition-colors text-gray-500 hover:text-orange-500"
+            >
+              <Bell size={20} />
+              <span className="text-xs mt-1">通知</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </NotificationProvider>
           </div>
         </div>
       </div>
