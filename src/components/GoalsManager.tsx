@@ -3,10 +3,12 @@ import { ChevronLeft, Target, Plus, Edit3, Trash2, Calendar, DollarSign } from '
 import { mockGoals } from '../data/mockData';
 import { Goal } from '../types';
 
+// 目標管理コンポーネントのProps
 interface GoalsManagerProps {
   onClose: () => void;
 }
 
+// 目標管理コンポーネント
 const GoalsManager = ({ onClose }: GoalsManagerProps) => {
   const [goals, setGoals] = useState<Goal[]>(mockGoals);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -35,6 +37,7 @@ const GoalsManager = ({ onClose }: GoalsManagerProps) => {
     { value: 'low', label: '低', color: 'text-green-600 bg-green-100' }
   ];
 
+  // フォームの送信時の処理
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -57,6 +60,7 @@ const GoalsManager = ({ onClose }: GoalsManagerProps) => {
     resetForm();
   };
 
+  // フォームのリセット
   const resetForm = () => {
     setFormData({
       name: '',
@@ -81,18 +85,21 @@ const GoalsManager = ({ onClose }: GoalsManagerProps) => {
     setShowAddForm(true);
   };
 
+  // 目標の削除
   const handleDelete = (goalId: string) => {
     if (confirm('この目標を削除しますか？')) {
       setGoals(goals.filter(g => g.id !== goalId));
     }
   };
 
+  // 進捗状況の色を取得
   const getProgressColor = (progress: number) => {
     if (progress >= 80) return 'bg-green-500';
     if (progress >= 50) return 'bg-yellow-500';
     return 'bg-orange-500';
   };
 
+  // 残り日数を計算
   const getDaysRemaining = (targetDate: string) => {
     const target = new Date(targetDate);
     const now = new Date();
@@ -101,6 +108,7 @@ const GoalsManager = ({ onClose }: GoalsManagerProps) => {
     return diffDays;
   };
 
+  // 追加フォームの表示
   if (showAddForm) {
     return (
       <div className="min-h-screen bg-gray-50">

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Home, BarChart3, Plus, Settings, Bell, TrendingUp, Target, Users } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Home, BarChart3, Plus, Settings, Bell, TrendingUp, Target, Users, LogOut } from 'lucide-react';
 import Dashboard from './components/Dashboard';
 import Analytics from './components/Analytics';
 import AddRecord from './components/AddRecord';
@@ -14,6 +14,11 @@ import ToastNotifications from './components/ToastNotifications';
 import NotificationDetail from './components/NotificationDetail';
 import { NotificationItem } from './context/NotificationContext';
 import NotificationList from './components/NotificationList';
+import { useNotifications } from './hooks/useNotifications';
+import { SavingsProvider } from './context/SavingsContext';
+
+// 自動ログアウトの時間（ミリ秒）
+const AUTO_LOGOUT_TIME = 30 * 60 * 1000; // 30分
 
 function App() {
   const [activeTab, setActiveTab] = useState('home');
@@ -21,6 +26,48 @@ function App() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [selectedNotification, setSelectedNotification] = useState<NotificationItem | null>(null);
   const [showNotificationList, setShowNotificationList] = useState(false);
+  const [lastActivity, setLastActivity] = useState(Date.now());
+  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
+
+  // ユーザーのアクティビティを記録
+  const updateLastActivity = useCallback(() => {
+    setLastActivity(Date.now());
+  }, []);
+
+  // 自動ログアウトのチェック
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const checkInactivity = () => {
+      const currentTime = Date.now();
+      if (currentTime - lastActivity > AUTO_LOGOUT_TIME) {
+        handleLogout();
+      }
+    };
+
+    // ユーザーのアクティビティを監視
+    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
+    events.forEach(event => {
+      document.addEventListener(event, updateLastActivity);
+    });
+
+    // 定期的にチェック
+    const interval = setInterval(checkInactivity, 1000);
+
+    return () => {
+      events.forEach(event => {
+        document.removeEventListener(event, updateLastActivity);
+      });
+      clearInterval(interval);
+    };
+  }, [isAuthenticated, lastActivity, updateLastActivity]);
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    setActiveTab('home');
+    setShowNotifications(false);
+    // 必要に応じて他の状態もリセット
+  };
 
   if (!isAuthenticated) {
     return <AuthScreen onAuth={() => setIsAuthenticated(true)} />;
@@ -66,6 +113,47 @@ function App() {
             onClose={() => setSelectedNotification(null)}
           />
         )}
+  <SavingsProvider>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white px-6 py-4 border-b border-gray-100">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-xl font-bold text-gray-900">おはようございます</h1>
+            <p className="text-sm text-gray-600">今日も貯金目標に向けて頑張りましょう！</p>
+          </div>
+          <div className="flex items-center space-x-3">
+            <div className="relative">
+              <Bell className="text-gray-400" size={20} />
+              <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full flex items-center justify-center">
+                <span className="text-xs text-white font-bold">{unreadCount}</span>
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center">
+                <span className="text-white text-sm font-medium">田</span>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="text-gray-500 hover:text-gray-700 transition-colors"
+                title="ログアウト"
+              >
+                <LogOut size={20} />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Notification Center */}
+      {showNotifications && (
+        <NotificationCenter
+          notifications={notifications}
+          onClose={() => setShowNotifications(false)}
+          onMarkAsRead={markAsRead}
+          onMarkAllAsRead={markAllAsRead}
+        />
+      )}
         {/* Content */}
         <div className="pb-20">
           {renderContent()}
@@ -130,6 +218,10 @@ function App() {
         </div>
       </div>
     </NotificationProvider>
+          </div>
+        </div>
+      </div>
+    </SavingsProvider>
   );
 }
 

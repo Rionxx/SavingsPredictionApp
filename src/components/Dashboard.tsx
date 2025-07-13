@@ -1,15 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Bell, ChevronRight, TrendingUp, Target, BarChart3, Plus, AlertTriangle, CheckCircle, Clock, Users, Edit2, Check, X } from 'lucide-react';
 import { mockTransactions, mockGoals, mockBudgetCategories } from '../data/mockData';
 import { PredictionEngine } from '../utils/predictionEngine';
 import { AdviceEngine } from '../utils/adviceEngine';
 import { useNotification } from '../context/NotificationContext';
+import { useSavings } from '../context/SavingsContext';
 
-const Dashboard = () => {
+// ダッシュボードコンポーネント
+const Dashboard: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedSavings, setEditedSavings] = useState('');
   const [localTransactions, setLocalTransactions] = useState(mockTransactions);
   const { addNotification } = useNotification();
+  const { setCurrentSavings } = useSavings();
 
   const predictionEngine = new PredictionEngine(localTransactions);
   const adviceEngine = new AdviceEngine(localTransactions, mockBudgetCategories, mockGoals);
@@ -34,6 +37,7 @@ const Dashboard = () => {
     setEditedSavings(currentSavings.toString());
   };
 
+  // 保存ボタンクリック時の処理
   const handleSave = () => {
     const newAmount = parseInt(editedSavings.replace(/,/g, ''));
     if (!isNaN(newAmount)) {
@@ -47,16 +51,18 @@ const Dashboard = () => {
         category: '調整',
         description: '貯金額の手動調整'
       };
-      setLocalTransactions([...localTransactions, newTransaction]);
+      setLocalTransactions([...localTransactions, newTransaction as Transaction]);
     }
     setIsEditing(false);
   };
 
+  // キャンセルボタンクリック時の処理
   const handleCancel = () => {
     setIsEditing(false);
     setEditedSavings('');
   };
 
+  // 入力フィールドの変更時の処理
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/[^0-9]/g, '');
     setEditedSavings(parseInt(value).toLocaleString());
